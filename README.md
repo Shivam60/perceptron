@@ -1,5 +1,5 @@
-# Clean_git_read
-Simple program to clean git history of unwanted large files by first listing them (5 at a time) and the removing them.
+# perceptron
+a work in progress for emulating a perceptron
 
 ## Getting Started
 
@@ -8,14 +8,8 @@ Simple program to clean git history of unwanted large files by first listing the
 Nothing as of now. All libraries are pre installed in python 3.
 
 ### Installing
-Just copy the the files(.sh and .py) to git directory which you want to clean.
-run python scipt.
-type yes and make yourself a maggie with coffe
+just import perceptron class
 
-
-## Acknowledgement:
-Thanks to cmaitchison user for bash files
-https://github.com/cmaitchison/git_diet
 
 ## Versioning
 1.0
