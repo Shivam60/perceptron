@@ -1,45 +1,67 @@
 import math
-import pickle,numpy as np
+import pickle
+
+import numpy as np
+
+
 class Perceptron():
-	def  __init__(self,weight_matrix,target_no,activation_function='identity',bias=1,alpha=.1,threshold=0):
+	def  __init__(self,layer_info,activation_function='identity',alpha=.1,threshold=0):
 		self.activation_function=activation_function
 		self.threshold=threshold
 		self.alpha=alpha
-		self.bias=np.full((target_no,1),bias)
-#		self.weight_matrix=np.zeros(shape=(len(input_matrix.flat),target_no))
-		self.weight_matrix=weight_matrix
-	'''
-	updates the input matrix of the neural net
-	'''	
-	def set_input(self,input_matrix):
-		self.input_matrix=input_matrix		
-	'''
-	This functions takes the inner product of weight matrix and given input,finds its sum, adds bias 
-	and then applies activation function and return the output as numpy array
-	'''
-	def output(self):
-		activ=self.activation()
-		return activ(self.bias+np.sum(np.inner(self.input_matrix,self.weight_matrix)))
-	'''
-	This functions takes alpha, target(t) and updates the weights
-	'''
-	def update_weights(self,t):
-#		print("Updating Weights: ")
-		alphta_x=np.full(self.weight_matrix.shape,self.alpha*t)
-		alphta_x_t=(alphta_x.T*self.input_matrix).T
-		self.weight_matrix=self.weight_matrix+alphta_x_t
-#		print("Weights Updated/nUpdating Bias")
-		bias=self.alpha*t
-#		print("Bias Updated")
-	def iterations(self,input_array,target):
-		for i in range(len(input_array)):
-			self.set_input(input_array[i])
-			print("input "+str(input_array[i])+" output: "+str(self.output()))
-			if self.output()!=target[i]:
-				self.update_weights(target[i])
-			print("Weights Now: "+str(self.weight_matrix))
-	def activation(self):
+		self.weight_matrix=[]
+		self.bias=[]
+		self.a0=[]
+		self.activ_fun=self.activation()
+		
 
+		if layer_info['hidden']==[0]:
+			val=[layer_info['inputs']]+[layer_info['outputs']]
+			val1=[layer_info['outputs']]
+
+		else:
+			val=[layer_info['inputs']]+layer_info['hidden']+[layer_info['outputs']]
+			val1=layer_info['hidden']+[layer_info['outputs']]
+
+		#self.delta=np.zeros(shape=(1,sum((val1)))
+
+		for i in val:
+			self.a0.append(np.zeros(shape=(1,i)))
+
+		for i in range(0,len(val)-1):
+			self.weight_matrix.append(np.zeros(shape=(val[i],val[i+1])))
+
+		for i in val1:
+			self.bias.append(np.zeros(shape=(1,i)))
+	def error_LMS(self,i):
+		return 0.5*np.sum(np.power((a0[len(a0)-1][i]-t[i],2)))
+
+	def display_weights(self):
+		print("Weights\n")
+		for i in self.weight_matrix:
+			print(i,'\n')
+		print("Bias\n")
+		for i in self.bias:
+			print(i,'\n')
+		print("Inputs\n")
+		for i in self.a0:
+			print(i,'\n')
+	
+	def update_weights(self,input_matrix):
+		self.a0[0]=np.array(input_matrix)
+		for i in range(0,len(self.weight_matrix)):
+			z1=np.array(self.a0[i].dot(self.weight_matrix[i]))+self.bias[i]
+			self.a0[i+1]=self.activ_fun(z1)
+	def update_particular_bias(self,i,input_matrix):
+		input_matrix=np.array(input_matrix)
+		self.bias[i]=input_matrix
+		#self.bias[i]=input_matrix.reshape(1,len(input_matrix))
+
+	def update_particular_weight(self,i,input_matrix):
+		self.weight_matrix[i]=np.array(input_matrix)
+		#self.weight_matrix[i]=input_matrix.reshape(len(input_matrix),len(input_matrix[0]))
+
+	def activation(self):
 		nf=True
 		if self.activation_function=='identity':
 			def activ(a):
@@ -79,5 +101,24 @@ class Perceptron():
 		if nf:
 			return np.vectorize(activ)
 
-nn=Perceptron(weight_matrix=np.array([0,0]),target_no=2,bias=0,alpha=1,activation_function='bipolar step')
-nn.iterations(np.array([[1,1],[1,-1],[-1,1],[-1,-1]]),np.array([1,-1,-1,-1]))
+	def cal_delta(self,i):
+		delta=[]
+		delta.append(t[i]-a0[len(a0)-1])
+		for i in range(len(self.weight_matrix)-1,0,-1):
+			delta.insert(0,delta[0]*self.weight_matrix[i])
+
+	
+if __name__=="__main__":
+	layer_info={
+		'inputs':2,
+		'outputs':1,
+		'hidden':[2]
+	}
+	nn=Perceptron(layer_info=layer_info,alpha=.25,activation_function='binary sigmoid')
+	nn.update_particular_weight(0,[[0.6,-0.3],[-0.1,0.4]])
+	nn.update_particular_weight(1,[0.4,0.1])
+	nn.update_particular_bias(0,[0.3,0.5])
+	nn.update_particular_bias(1,[-0.2])
+#	nn.display_weights()
+	nn.update_weights(input_matrix=np.array([0,1]))
+	nn.display_weights()
