@@ -13,7 +13,7 @@ class Perceptron():
 		self.bias=[]
 		self.a0=[]
 		self.activ_fun=self.activation()
-		
+		self.target=None
 
 		if layer_info['hidden']==[0]:
 			val=[layer_info['inputs']]+[layer_info['outputs']]
@@ -33,8 +33,8 @@ class Perceptron():
 
 		for i in val1:
 			self.bias.append(np.zeros(shape=(1,i)))
-	def error_LMS(self,i):
-		return 0.5*np.sum(np.power((a0[len(a0)-1][i]-t[i],2)))
+	def error_LMS(self,t):
+		return 0.5*np.sum(np.power((self.a0[-1]-t),2))
 
 	def display_weights(self):
 		print("Weights\n")
@@ -51,6 +51,7 @@ class Perceptron():
 		self.a0[0]=np.array(input_matrix)
 		for i in range(0,len(self.weight_matrix)):
 			z1=np.array(self.a0[i].dot(self.weight_matrix[i]))+self.bias[i]
+			#print(self.a0[i],self.weight_matrix[i],self.bias[i])
 			self.a0[i+1]=self.activ_fun(z1)
 	def update_particular_bias(self,i,input_matrix):
 		input_matrix=np.array(input_matrix)
@@ -60,7 +61,6 @@ class Perceptron():
 	def update_particular_weight(self,i,input_matrix):
 		self.weight_matrix[i]=np.array(input_matrix)
 		#self.weight_matrix[i]=input_matrix.reshape(len(input_matrix),len(input_matrix[0]))
-
 	def activation(self):
 		nf=True
 		if self.activation_function=='identity':
@@ -101,24 +101,32 @@ class Perceptron():
 		if nf:
 			return np.vectorize(activ)
 
-	def cal_delta(self,i):
+	def cal_delta(self,t):
 		delta=[]
-		delta.append(t[i]-a0[len(a0)-1])
+		delta.append(t-self.a0[len(self.a0)-1])
+		#print(delta)
 		for i in range(len(self.weight_matrix)-1,0,-1):
 			delta.insert(0,delta[0]*self.weight_matrix[i])
-
-	
+		#print(delta)
+		for i in range(0,len(self.weight_matrix)):
+			weight_matrix_new=self.weight_matrix+self.alpha*t*delta[i]
 if __name__=="__main__":
 	layer_info={
 		'inputs':2,
-		'outputs':1,
+		'outputs':2,
 		'hidden':[2]
 	}
 	nn=Perceptron(layer_info=layer_info,alpha=.25,activation_function='binary sigmoid')
-	nn.update_particular_weight(0,[[0.6,-0.3],[-0.1,0.4]])
-	nn.update_particular_weight(1,[0.4,0.1])
-	nn.update_particular_bias(0,[0.3,0.5])
-	nn.update_particular_bias(1,[-0.2])
-#	nn.display_weights()
-	nn.update_weights(input_matrix=np.array([0,1]))
-	nn.display_weights()
+	
+	nn.update_particular_weight(0,[[0.15,0.20],[0.25,0.3]])
+	nn.update_particular_weight(1,[[0.40,0.45],[.5,.55]])
+	nn.update_particular_bias(0,[0.35,0.35])
+	nn.update_particular_bias(1,[0.60,0.60])
+	nn.target=np.array([.01,.99])
+
+	nn.update_weights(input_matrix=np.array([0.05,.1]))
+	err=nn.error_LMS(np.array([.01,.99]))
+	print(err)
+	#print(nn.a0[len(nn.a0)-1])
+	#nn.display_weights()
+	#nn.cal_delta(1)
