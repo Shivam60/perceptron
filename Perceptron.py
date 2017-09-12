@@ -33,9 +33,10 @@ class Perceptron():
 
 		for i in val1:
 			self.bias.append(np.zeros(shape=(1,i)))
+	#to calculates the error
 	def error_LMS(self,t):
 		return 0.5*np.sum(np.power((self.a0[-1]-t),2))
-
+	#to display the present weights and bias
 	def display_weights(self):
 		print("Weights\n")
 		for i in self.weight_matrix:
@@ -46,21 +47,21 @@ class Perceptron():
 		print("Inputs\n")
 		for i in self.a0:
 			print(i,'\n')
-	
-	def update_weights(self,input_matrix):
+	#given he input matrix, this calculates the output of the network
+	def feedforward(self,input_matrix):
 		self.a0[0]=np.array(input_matrix)
 		for i in range(0,len(self.weight_matrix)):
 			z1=np.array(self.a0[i].dot(self.weight_matrix[i]))+self.bias[i]
 			#print(self.a0[i],self.weight_matrix[i],self.bias[i])
 			self.a0[i+1]=self.activ_fun(z1)
+	#to update a particular bias denoted by 'i' in the bias_matrix
 	def update_particular_bias(self,i,input_matrix):
 		input_matrix=np.array(input_matrix)
 		self.bias[i]=input_matrix
-		#self.bias[i]=input_matrix.reshape(1,len(input_matrix))
-
+	#to update a particular weight denoted by 'i' in the weight_matrix
 	def update_particular_weight(self,i,input_matrix):
 		self.weight_matrix[i]=np.array(input_matrix)
-		#self.weight_matrix[i]=input_matrix.reshape(len(input_matrix),len(input_matrix[0]))
+	#returns the vectorised activation function.
 	def activation(self):
 		nf=True
 		if self.activation_function=='identity':
@@ -102,31 +103,28 @@ class Perceptron():
 			return np.vectorize(activ)
 
 	def cal_delta(self,t):
-		delta=[]
-		delta.append(t-self.a0[len(self.a0)-1])
-		#print(delta)
-		for i in range(len(self.weight_matrix)-1,0,-1):
-			delta.insert(0,delta[0]*self.weight_matrix[i])
-		#print(delta)
-		for i in range(0,len(self.weight_matrix)):
-			weight_matrix_new=self.weight_matrix+self.alpha*t*delta[i]
+		
+		del_output=self.a0[-1]*(1-self.a0[-1])*(t-self.a0[-1])
+		h1=self.a0[-2]*(1-self.a0[-2])*del_output*self.weight_matrix[-1]
+		print(h1)	
+
 if __name__=="__main__":
 	layer_info={
-		'inputs':2,
-		'outputs':2,
+		'inputs':3,
+		'outputs':1,
 		'hidden':[2]
 	}
-	nn=Perceptron(layer_info=layer_info,alpha=.25,activation_function='binary sigmoid')
+	nn=Perceptron(layer_info=layer_info,alpha=.5,activation_function='binary sigmoid')
 	
-	nn.update_particular_weight(0,[[0.15,0.20],[0.25,0.3]])
-	nn.update_particular_weight(1,[[0.40,0.45],[.5,.55]])
-	nn.update_particular_bias(0,[0.35,0.35])
-	nn.update_particular_bias(1,[0.60,0.60])
-	nn.target=np.array([.01,.99])
+	nn.update_particular_weight(0,[[.2,-.3],[.4,.1],[-.5,.1]])
+	nn.update_particular_weight(1,[-.3,-.2])
+	nn.update_particular_bias(0,[-.4,.2])
+	nn.update_particular_bias(1,[.1])
+	nn.target=np.array([1])
 
-	nn.update_weights(input_matrix=np.array([0.05,.1]))
-	err=nn.error_LMS(np.array([.01,.99]))
-	print(err)
+	nn.feedforward(input_matrix=np.array([1,0,1]))
+#	err=nn.error_LMS(np.array([.01,.99]))
+	nn.cal_delta(nn.target)
 	#print(nn.a0[len(nn.a0)-1])
 	#nn.display_weights()
 	#nn.cal_delta(1)
