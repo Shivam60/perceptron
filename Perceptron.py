@@ -14,20 +14,22 @@ class Perceptron():
 		self.a0=[]
 		self.activ_fun=self.activation()
 		self.target=None
-
-		if layer_info['hidden']==[0]:
-			val=[layer_info['inputs']]+[layer_info['outputs']]
-			val1=[layer_info['outputs']]
+		self.layer_info=layer_info
+		if self.layer_info['hidden']==[0]:
+			val=[self.layer_info['inputs']]+[self.layer_info['outputs']]
+			val1=[self.layer_info['outputs']]
 
 		else:
-			val=[layer_info['inputs']]+layer_info['hidden']+[layer_info['outputs']]
-			val1=layer_info['hidden']+[layer_info['outputs']]
-
+			val=[self.layer_info['inputs']]+self.layer_info['hidden']+[self.layer_info['outputs']]
+			val1=self.layer_info['hidden']+[self.layer_info['outputs']]
+		
 		#self.delta=np.zeros(shape=(1,sum((val1)))
 
 		for i in val:
 			self.a0.append(np.zeros(shape=(1,i)))
-
+		
+		self.layer_info['back']=len(self.a0)-1
+		
 		for i in range(0,len(val)-1):
 			self.weight_matrix.append(np.zeros(shape=(val[i],val[i+1])))
 
@@ -49,15 +51,15 @@ class Perceptron():
 			print(i,'\n')
 	#given he input matrix, this calculates the output of the network
 	def feedforward(self,input_matrix):
-		self.a0[0]=np.array(input_matrix)
+		self.a0[0]=np.array(input_matrix).reshape(1,len(input_matrix))
 		for i in range(0,len(self.weight_matrix)):
-			z1=np.array(self.a0[i].dot(self.weight_matrix[i]))+self.bias[i]
+			z1=np.array(self.a0[i].dot(self.weight_matrix[i])+self.bias[i])
 			#print(self.a0[i],self.weight_matrix[i],self.bias[i])
 			self.a0[i+1]=self.activ_fun(z1)
+			self.a0[i+1]=self.a0[i+1].reshape(1,self.a0[i+1].shape[1])
 	#to update a particular bias denoted by 'i' in the bias_matrix
 	def update_particular_bias(self,i,input_matrix):
-		input_matrix=np.array(input_matrix)
-		self.bias[i]=input_matrix
+		self.bias[i]=np.array(input_matrix).reshape(1,len(input_matrix))
 	#to update a particular weight denoted by 'i' in the weight_matrix
 	def update_particular_weight(self,i,input_matrix):
 		self.weight_matrix[i]=np.array(input_matrix)
@@ -103,28 +105,45 @@ class Perceptron():
 			return np.vectorize(activ)
 
 	def cal_delta(self,t):
+		temp_weight_matrix=self.weight_matrix
+		temp_bias=self.bias
+	#for the output layer
+		del_output=np.array(self.a0[len(self.a0)-1]*(1-self.a0[len(self.a0)-1])*(t-self.a0[len(self.a0)-1]))
+	#for 1st hidden layer from back
+		temp1=del_output*self.weight_matrix[len(self.weight_matrix)-1]*self.alpha		
+		temp2=self.bias[len(self.bias)-1]*del_output
+		temp_weight_matrix[len(temp_weight_matrix)-1]=self.weight_matrix[len(self.weight_matrix)-1]+temp1
+		temp_bias[len(self.bias)-1]=self.bias[len(self.bias)-1]+temp2
 		
-		del_output=self.a0[-1]*(1-self.a0[-1])*(t-self.a0[-1])
-		h1=self.a0[-2]*(1-self.a0[-2])*del_output*self.weight_matrix[-1]
-		print(h1)	
+		for i in range(self.layer_info['back']-1,0,-1):
+			del_output=self.a0[i]*(1-self.a0[i])*np.sum(self.weight_matrix[i]*del_output,axis=1)
+			temp1=self.a0[i-1].reshape(len(self.weight_matrix[i-1]),1)*del_output*self.alpha		
+			temp2=self.bias[i-1]*del_output
+			#print(temp_weight_matrix[i])
+			temp_weight_matrix[i-1]=self.weight_matrix[i-1]+temp1
+			temp_bias[i-1]=self.bias[i-1]+temp2
+
+		self.weight_matrix=temp_weight_matrix
+		self.bias=temp_bias
 
 if __name__=="__main__":
-	layer_info={
-		'inputs':3,
-		'outputs':1,
-		'hidden':[2]
-	}
-	nn=Perceptron(layer_info=layer_info,alpha=.5,activation_function='binary sigmoid')
-	
-	nn.update_particular_weight(0,[[.2,-.3],[.4,.1],[-.5,.1]])
-	nn.update_particular_weight(1,[-.3,-.2])
-	nn.update_particular_bias(0,[-.4,.2])
-	nn.update_particular_bias(1,[.1])
-	nn.target=np.array([1])
 
-	nn.feedforward(input_matrix=np.array([1,0,1]))
-#	err=nn.error_LMS(np.array([.01,.99]))
-	nn.cal_delta(nn.target)
-	#print(nn.a0[len(nn.a0)-1])
-	#nn.display_weights()
-	#nn.cal_delta(1)
+	layer_info={
+		'inputs':2,
+		'outputs':2,
+		'hidden':[3]
+	}
+	nn=Perceptron(layer_info=layer_info,alpha=.1,activation_function='binary sigmoid')
+	nn.update_particular_weight(0,[[0.1,0,0.3],[-0.2,0.2,-0.4]])
+	nn.update_particular_weight(1,[[-0.4,0.2],[0.1,-0.1],[0.6,-0.2]])
+	nn.update_particular_bias(0,[.1,.2,.5])
+	nn.update_particular_bias(1,[-.1,.6])
+	nn.target=np.array([1,0])
+'''
+	for i in range(10000):
+		nn.feedforward(input_matrix=[.6,.1])
+		#nn.display_weights()
+		if np.array_equal(nn.target,nn.a0[len(nn.a0)-1])==0:
+			nn.cal_delta(nn.target)
+		print(nn.error_LMS(nn.target))
+'''
