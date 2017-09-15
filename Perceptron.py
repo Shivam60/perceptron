@@ -1,8 +1,6 @@
 import math
 import pickle
-
 import numpy as np
-
 
 class Perceptron():
 	def  __init__(self,layer_info,activation_function='identity',alpha=.1,threshold=0):
@@ -53,10 +51,14 @@ class Perceptron():
 	def feedforward(self,input_matrix):
 		self.a0[0]=np.array(input_matrix).reshape(1,len(input_matrix))
 		for i in range(0,len(self.weight_matrix)):
-			z1=np.array(self.a0[i].dot(self.weight_matrix[i])+self.bias[i])
+			try:
+				z1=np.array(self.a0[i].dot(self.weight_matrix[i])+self.bias[i])
+			except:
+				z1=np.array(np.sum(self.a0[i]*self.weight_matrix[i])+self.bias[i])
 			#print(self.a0[i],self.weight_matrix[i],self.bias[i])
-			self.a0[i+1]=self.activ_fun(z1)
-			self.a0[i+1]=self.a0[i+1].reshape(1,self.a0[i+1].shape[1])
+			finally:
+				self.a0[i+1]=self.activ_fun(z1)
+#			self.a0[i+1]=self.a0[i+1].reshape(1,self.a0[i+1].shape[1])
 	#to update a particular bias denoted by 'i' in the bias_matrix
 	def update_particular_bias(self,i,input_matrix):
 		self.bias[i]=np.array(input_matrix).reshape(1,len(input_matrix))
@@ -129,16 +131,21 @@ class Perceptron():
 if __name__=="__main__":
 
 	layer_info={
-		'inputs':2,
-		'outputs':2,
-		'hidden':[3]
+		'inputs':3,
+		'outputs':1,
+		'hidden':[2]
 	}
-	nn=Perceptron(layer_info=layer_info,alpha=.1,activation_function='binary sigmoid')
-	nn.update_particular_weight(0,[[0.1,0,0.3],[-0.2,0.2,-0.4]])
-	nn.update_particular_weight(1,[[-0.4,0.2],[0.1,-0.1],[0.6,-0.2]])
-	nn.update_particular_bias(0,[.1,.2,.5])
-	nn.update_particular_bias(1,[-.1,.6])
-	nn.target=np.array([1,0])
+	nn=Perceptron(layer_info=layer_info,alpha=.9,activation_function='binary sigmoid')
+	nn.update_particular_weight(0,[[0.2,-0.3],[0.4,0.1],[-0.5,0.2]])
+	nn.update_particular_weight(1,[[-0.3,-0.2]])
+	nn.update_particular_bias(0,[-0.4,0.2])
+	nn.update_particular_bias(1,[.1])
+
+	nn.feedforward(input_matrix=[1,0,1])
+	nn.display_weights()
+	nn.cal_delta(t=[1])
+	nn.display_weights()
+#	nn.target=np.array([1,0])
 '''
 	for i in range(10000):
 		nn.feedforward(input_matrix=[.6,.1])
