@@ -58,6 +58,7 @@ class Perceptron():
 	def update_weights(self):
 		for i in range(0,len(self.bias)):
 			self.bias[i]=self.bias[i]+self.delta[i]*self.alpha
+			self.weight_matrix[i]=self.weight_matrix[i]+self.alpha*self.delta[i]*self.a0[i].T
 	#to calculates the error
 	def error_LMS(self,t):
 		return 0.5*np.sum(np.power((self.a0[-1]-t),2))
@@ -139,16 +140,7 @@ if __name__=="__main__":
 	nn.update_particular_bias(0,[-0.4,0.2])
 	nn.update_particular_bias(1,[.1])
 #	nn.display_weights()
-
-	nn.feedforward(input_matrix=[1,0,1])
-	nn.backpropogate()
-	nn.update_weights()
-	#nn.cal_delta1(nn.target)
-'''
-	for i in range(10000):
-		nn.feedforward(input_matrix=[.6,.1])
-		#nn.display_weights()
-		if np.array_equal(nn.target,nn.a0[len(nn.a0)-1])==0:
-			nn.cal_delta(nn.target)
-		print(nn.error_LMS(nn.target))
-'''
+	for i in range(100):
+		nn.feedforward(input_matrix=[1,0,1])
+		nn.backpropogate()
+		nn.update_weights()
