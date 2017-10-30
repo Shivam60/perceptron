@@ -11,6 +11,7 @@ class Perceptron():
 		self.bias=[]
 		self.a0=[]
 		self.activ_fun=self.activation()
+		self.deriva=self.deriv()
 		self.target=None
 		self.layer_info=layer_info
 		self.delta=[]
@@ -34,9 +35,29 @@ class Perceptron():
 		
 		for i in range(0,len(val)-1):
 			self.weight_matrix.append(np.zeros(shape=(val[i],val[i+1])))
-
 		for i in val1:
 			self.bias.append(np.zeros(shape=(1,i)))
+	def deriv(self):
+		def activ(a):
+			return a*(1-a)
+		return np.vectorize(activ)
+	def backpropogate(self):
+		for i in range(len(self.a0)-1,0,-1):
+			if i==(len(self.a0)-1):
+				Err=self.target-self.a0[i]
+				del1=self.deriva(self.a0[i])
+				self.delta[i-1]=del1.dot(Err)
+			else:
+				del1=self.deriva(self.a0[i])
+
+				Entropy=del1*self.delta[i]
+				self.delta[i-1]=np.multiply(self.weight_matrix[i].T,Entropy)
+
+#   			print(self.weight_matrix[i].T,Entropy)
+#   			print(np.multiply(self.weight_matrix[i].T,Entropy))
+	def update_weights(self):
+		for i in range(0,len(self.bias)):
+			self.bias[i]=self.bias[i]+self.delta[i]*self.alpha
 	#to calculates the error
 	def error_LMS(self,t):
 		return 0.5*np.sum(np.power((self.a0[-1]-t),2))
@@ -55,15 +76,8 @@ class Perceptron():
 	def feedforward(self,input_matrix):
 		self.a0[0]=np.array(input_matrix).reshape(1,len(input_matrix))
 		for i in range(0,len(self.weight_matrix)):
-			try:
-				z1=np.array(self.a0[i].dot(self.weight_matrix[i])+self.bias[i])
-			except e as error:
-				print(e)
-		#		z1=np.array(np.sum(self.a0[i]*self.weight_matrix[i])+self.bias[i])
-			#print(self.a0[i],self.weight_matrix[i],self.bias[i])
-			finally:
-				self.a0[i+1]=self.activ_fun(z1)
-#			self.a0[i+1]=self.a0[i+1].reshape(1,self.a0[i+1].shape[1])
+			z1=self.a0[i].dot(self.weight_matrix[i])+self.bias[i]
+			self.a0[i+1]=self.activ_fun(z1)
 	#to update a particular bias denoted by 'i' in the bias_matrix
 	def update_particular_bias(self,i,input_matrix):
 		self.bias[i]=np.array(input_matrix).reshape(1,len(input_matrix))
@@ -119,17 +133,17 @@ if __name__=="__main__":
 		'outputs':1,
 		'hidden':[2]
 	}
-	nn=Perceptron(layer_info=layer_info,alpha=.9,activation_function='binary sigmoid')
+	nn=Perceptron(layer_info=layer_info,alpha=.9,activation_function='binary sigmoid',target=[1])
 	nn.update_particular_weight(0,[[0.2,-0.3],[0.4,0.1],[-0.5,0.2]])
-	nn.update_particular_weight(1,[[-0.3,-0.2]])
+	nn.update_particular_weight(1,[[-0.3],[-0.2]])
 	nn.update_particular_bias(0,[-0.4,0.2])
 	nn.update_particular_bias(1,[.1])
+#	nn.display_weights()
 
 	nn.feedforward(input_matrix=[1,0,1])
-	#nn.display_weights()
-	nn.target=np.array([1])
-
-	nn.cal_delta1(nn.target)
+	nn.backpropogate()
+	nn.update_weights()
+	#nn.cal_delta1(nn.target)
 '''
 	for i in range(10000):
 		nn.feedforward(input_matrix=[.6,.1])
